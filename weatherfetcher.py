@@ -11,10 +11,19 @@ class WeatherFetcher(threading.Thread):
     def __init__(self, api_key):
         threading.Thread.__init__(self)
         self.current = 'No weather data'
-        self.forecast = ['No forecast data', 'No forecast data', 'No forecast data']
+        self.forecasts = []
         self.api_key = api_key        
         self.running = True if api_key else False        
-
+    
+    def __enter__(self):
+        self.start()
+        return self
+        
+    def __exit__(self, type, value, traceback):
+        self.running = False
+        self.join()
+        return False
+    
     def run(self):
         http = PoolManager()
         while self.running:
@@ -22,12 +31,14 @@ class WeatherFetcher(threading.Thread):
             parsed_json = json.loads(r.data.decode('utf-8'))
             temp_c = parsed_json['current_observation']['temp_c']
             weather_string = parsed_json['current_observation']['weather']
-            self.current = str(temp_c) + u"\u00b0" + " " + weather_string
+            self.current = str(temp_c) + u'\u00b0' + " " + weather_string
             
-            for i in range(0,3):
-                fcasttime = parsed_json['hourly_forecast'][i]['FCTTIME']['hour_padded'] + ':' + parsed_json['hourly_forecast'][i]['FCTTIME']['min']
-                fcasttemp = parsed_json['hourly_forecast'][i]
-                self.forecast[i] = fcasttime
+            del self.forecasts[:]
+            for fcast in parsed_json['hourly_forecast']:
+                fcasttime = fcast['FCTTIME']['hour_padded'] + ':' + fcast['FCTTIME']['min']
+                fcasttemp = fcast['temp']['metric'] + u'\u00b0'
+                fcastcondition = fcast['condition']
+                self.forecasts.append('{}: {} {}'.format(fcasttime, fcasttemp, fcastcondition))
             
             for i in range(0, 900):
                 if not self.running: 

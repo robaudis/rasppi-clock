@@ -21,7 +21,23 @@ def is_between(now, start, end):
 def make_font(fontname, size):
     scriptpath = os.path.dirname(os.path.abspath(__file__))
     return ImageFont.truetype(os.path.join(scriptpath, 'fonts', '%s.ttf' % fontname), size)
-        
+
+class ForecastPicker:
+    def __init__(self, weatherfetcher):
+        self.requests = 0
+        self.forecastnum = 0
+        self.fetcher = weatherfetcher
+    
+    def forecast(self):
+        if len(self.fetcher.forecasts):
+            self.requests += 1
+            if self.requests > 20:
+                self.requests = 0
+                self.forecastnum = self.forecastnum + 1 if self.forecastnum < 2 else 0
+            
+            return self.fetcher.forecasts[self.forecastnum]
+        return 'No forecast data'
+
 parser = argparse.ArgumentParser(description='OLED clock with weather.')
 parser.add_argument('--apikey', help='Weather Underground API key.')
 args = parser.parse_args()
@@ -41,28 +57,34 @@ end = datetime.strptime('22:30', '%H:%M').time()
 
 sighandler = SigHandler()
 
-weather = WeatherFetcher(args.apikey)
-weather.start()
+slicepos = 0
+extrachars = 0
+with WeatherFetcher(args.apikey) as weather:
+    forecastpicker = ForecastPicker(weather)
+    while not sighandler.kill_now:
+        if is_between(datetime.now().time(), start, end):
+            if not screen_on:
+                device.show()
+                screen_on = True
 
-while not sighandler.kill_now:
-    if is_between(datetime.now().time(), start, end):
-        if not screen_on:
-            device.show()
-            screen_on = True
+            with canvas(device) as draw:
+                format = '%H:%M' if not space else '%H %M'
+                draw.text((2,2), datetime.now().strftime(format), font=clockfont, fill='white')            
+                draw.text((5,40), weather.current, font=infofont, fill='white')
+                #draw.text((5,50), datetime.now().strftime('%d-%m-%Y'), font=infofont, fill='white')
+                forecast = forecastpicker.forecast()
+                length = len(forecast)
+                
+                extrachars = length - 20 if length - 20 else zero
+                draw.text((5,50), forecast[slicepos:], font=infofont, fill='white')
+        else:
+            if screen_on:
+                device.hide()
+                screen_on = False
+        
+        slicepos += 1
+        if slicepos > extrachars:
+            slicepos = 0
+        space = not space
+        time.sleep(0.5)
 
-        with canvas(device) as draw:
-            format = '%H:%M' if not space else '%H %M'
-            draw.text((2,2), datetime.now().strftime(format), font=clockfont, fill='white')            
-            draw.text((5,40), weather.current, font=infofont, fill='white')
-            draw.text((5,50), datetime.now().strftime('%d-%m-%Y'), font=infofont, fill='white')
-            #draw.text((5,50), weather.forecast[0], font=infofont, fill='white')
-    else:
-        if screen_on:
-            device.hide()
-            screen_on = False
-
-    space = not space
-    time.sleep(0.5)
-
-weather.running = False
-weather.join()

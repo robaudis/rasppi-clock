@@ -40,7 +40,7 @@ class WeatherFetcher(threading.Thread):
                 fcastcondition = fcast['condition']
                 self.forecasts.append('{}: {} {}'.format(fcasttime, fcasttemp, fcastcondition))
             
-            for i in range(0, 900):
+            for i in range(0, 300):
                 if not self.running: 
                     break
                 time.sleep(1)

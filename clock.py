@@ -9,7 +9,7 @@ import time
 import os
 import argparse
 
-              
+
 def is_between(now, start, end):
     if start < end:
         return start <= now < end
@@ -17,7 +17,7 @@ def is_between(now, start, end):
         return start <= now or now < end
     else:
         return True
-        
+
 def make_font(fontname, size):
     scriptpath = os.path.dirname(os.path.abspath(__file__))
     return ImageFont.truetype(os.path.join(scriptpath, 'fonts', '%s.ttf' % fontname), size)
@@ -59,7 +59,7 @@ sighandler = SigHandler()
 
 slicepos = 0
 extrachars = 0
-with WeatherFetcher(args.apikey) as weather:
+with WeatherFetcher(args.apikey, 300) as weather:
     forecastpicker = ForecastPicker(weather)
     while not sighandler.kill_now:
         if is_between(datetime.now().time(), start, end):

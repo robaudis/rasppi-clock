@@ -6,13 +6,14 @@ import threading
 
 class WeatherFetcher(threading.Thread):
     '''
-    Class for fetching weather data every 15mins from Weather Underground
+    Class for fetching weather data every x seconds from Weather Underground
     '''
-    def __init__(self, api_key):
+    def __init__(self, api_key, interval = 900):
         threading.Thread.__init__(self)
         self.current = 'No weather data'
         self.forecasts = []
-        self.api_key = api_key        
+        self.api_key = api_key   
+        self.interval = interval
         self.running = True if api_key else False        
     
     def __enter__(self):
@@ -40,7 +41,7 @@ class WeatherFetcher(threading.Thread):
                 fcastcondition = fcast['condition']
                 self.forecasts.append('{}: {} {}'.format(fcasttime, fcasttemp, fcastcondition))
             
-            for i in range(0, 300):
+            for i in range(0, self.interval):
                 if not self.running: 
                     break
                 time.sleep(1)

@@ -1,4 +1,4 @@
-from urllib3 import PoolManager
+import requests
 import json
 import time
 import threading
@@ -26,21 +26,24 @@ class WeatherFetcher(threading.Thread):
         return False
     
     def run(self):
-        http = PoolManager()
         while self.running:
-            r = http.request('GET', 'http://api.wunderground.com/api/%s/conditions/hourly/q/50.72,-1.98.json' % self.api_key)
-            parsed_json = json.loads(r.data.decode('utf-8'))
-            temp_c = parsed_json['current_observation']['temp_c']
-            weather_string = parsed_json['current_observation']['weather']
-            self.current = str(temp_c) + u'\u00b0' + " " + weather_string
+            try:
+                r = requests.get('http://api.wunderground.com/api/%s/conditions/hourly/q/50.72,-1.98.json' % self.api_key)
+                parsed_json = r.json()
+                temp_c = parsed_json['current_observation']['temp_c']
+                weather_string = parsed_json['current_observation']['weather']
+                self.current = str(temp_c) + u'\u00b0' + " " + weather_string
             
-            del self.forecasts[:]
-            for fcast in parsed_json['hourly_forecast']:
-                fcasttime = fcast['FCTTIME']['hour_padded'] + ':' + fcast['FCTTIME']['min']
-                fcasttemp = fcast['temp']['metric'] + u'\u00b0'
-                fcastcondition = fcast['condition']
-                self.forecasts.append('{}: {} {}'.format(fcasttime, fcasttemp, fcastcondition))
-            
+                del self.forecasts[:]
+                for fcast in parsed_json['hourly_forecast']:
+                    fcasttime = fcast['FCTTIME']['hour_padded'] + ':' + fcast['FCTTIME']['min']
+                    fcasttemp = fcast['temp']['metric'] + u'\u00b0'
+                    fcastcondition = fcast['condition']
+                    self.forecasts.append('{}: {} {}'.format(fcasttime, fcasttemp, fcastcondition))
+            except (requests.exceptions.RequestException, ValueError):
+                self.current = 'Unable to fetch data'
+                del self.forecasts[:]
+
             for i in range(0, self.interval):
                 if not self.running: 
                     break

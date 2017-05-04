@@ -39,7 +39,8 @@ class WeatherFetcher(threading.Thread):
                     fcasttime = fcast['FCTTIME']['hour_padded'] + ':' + fcast['FCTTIME']['min']
                     fcasttemp = fcast['temp']['metric'] + u'\u00b0'
                     fcastcondition = fcast['condition']
-                    self.forecasts.append('{}: {} {}'.format(fcasttime, fcasttemp, fcastcondition))
+                    fcastrain = fcast['pop']
+                    self.forecasts.append('{}: {} {}, rain: {}%'.format(fcasttime, fcasttemp, fcastcondition, fcastrain))
             except (requests.exceptions.RequestException, ValueError):
                 self.current = 'Unable to fetch data'
                 del self.forecasts[:]

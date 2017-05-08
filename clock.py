@@ -2,10 +2,13 @@ from luma.core.serial import spi
 from luma.core.render import canvas
 from luma.oled.device import sh1106
 from PIL import Image, ImageDraw, ImageFont
+
 from datetime import datetime
+
 from sighandler import SigHandler
 from weatherfetcher import WeatherFetcher
-from contextlib import contextmanager
+from forecastpicker import ForecastPicker
+
 import time
 import os
 import argparse
@@ -23,49 +26,9 @@ def make_font(fontname, size):
     scriptpath = os.path.dirname(os.path.abspath(__file__))
     return ImageFont.truetype(os.path.join(scriptpath, 'fonts', '%s.ttf' % fontname), size)
 
-class TextScroller:
-    def __init__(self, text, screenwidth = 20):
-        self.text = text
-        self.scrolling = False
-        self.slicepos = 0
-        self.waitcount = 0
-        self.extrachars = len(text) - screenwidth if len(text) > screenwidth else 0
-
-    @contextmanager
-    def scroll(self, scrolldelay = 3, overscroll = 0):
-        if self.slicepos > self.extrachars + overscroll:
-            self.slicepos = 0
-            self.waitcount = 0
-            self.scrolling = False
-
-        yield self.text[self.slicepos:]
-
-        self.waitcount += 1
-        if self.extrachars and self.waitcount > scrolldelay:
-            self.scrolling = True
-            self.slicepos += 1
-
-class ForecastPicker:
-    def __init__(self, weatherfetcher):
-        self.requests = 0
-        self.forecastnum = 0
-        self.fetcher = weatherfetcher
-        self.default = TextScroller('No forecast data')
-        self.current = None
-    
-    def forecast(self):
-        if len(self.fetcher.forecasts):
-            self.requests += 1
-            if self.current is None or (self.requests > 20 and not self.current.scrolling):
-                self.requests = 0
-                self.forecastnum = self.forecastnum + 1 if self.forecastnum < 2 else 0
-                self.current = TextScroller(self.fetcher.forecasts[self.forecastnum])
-            
-            return self.current
-        return self.default
-
 parser = argparse.ArgumentParser(description='OLED clock with weather.')
-parser.add_argument('--apikey', help='Weather Underground API key.')
+parser.add_argument('--apikey', help='Weather Underground API key.', required=True)
+parser.add_argument('--location', help='Location query string, can be search term (e.g. Town, Postcode), Lat/Lon (50.72,-1.98) or weather station (pws:STATIONNO)', required=True)
 args = parser.parse_args()
 
 serial = spi(device=0, port=0)
@@ -83,7 +46,7 @@ end = datetime.strptime('22:30', '%H:%M').time()
 
 sighandler = SigHandler()
 
-with WeatherFetcher(args.apikey, 300) as weather:
+with WeatherFetcher(args.apikey, args.location, 300) as weather:
     forecastpicker = ForecastPicker(weather)
     while not sighandler.kill_now:
         if is_between(datetime.now().time(), start, end):

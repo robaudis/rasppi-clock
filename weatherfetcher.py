@@ -8,11 +8,12 @@ class WeatherFetcher(threading.Thread):
     '''
     Class for fetching weather data every x seconds from Weather Underground
     '''
-    def __init__(self, api_key, interval = 900):
+    def __init__(self, api_key, location, interval = 900):
         threading.Thread.__init__(self)
         self.current = 'No weather data'
         self.forecasts = []
-        self.api_key = api_key   
+        self.api_key = api_key
+        self.location = location   
         self.interval = interval
         self.running = True if api_key else False        
     
@@ -28,7 +29,7 @@ class WeatherFetcher(threading.Thread):
     def run(self):
         while self.running:
             try:
-                r = requests.get('http://api.wunderground.com/api/%s/conditions/hourly/q/50.72,-1.98.json' % self.api_key)
+                r = requests.get('http://api.wunderground.com/api/{apikey}/conditions/hourly/q/{location}.json'.format(apikey=self.api_key, location=self.location))
                 parsed_json = r.json()
                 temp_c = parsed_json['current_observation']['temp_c']
                 weather_string = parsed_json['current_observation']['weather']

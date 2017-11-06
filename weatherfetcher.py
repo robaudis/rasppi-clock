@@ -3,6 +3,8 @@ import json
 import time
 import threading
 
+from textscroller import TextScroller
+
 
 class WeatherFetcher(threading.Thread):
     '''
@@ -41,7 +43,7 @@ class WeatherFetcher(threading.Thread):
                     fcasttemp = fcast['temp']['metric'] + u'\u00b0'
                     fcastcondition = fcast['condition']
                     fcastrain = fcast['pop']
-                    self.forecasts.append('{}: {} {}, rain: {}%'.format(fcasttime, fcasttemp, fcastcondition, fcastrain))
+                    self.forecasts.append(TextScroller('{}: {} {}, rain: {}%'.format(fcasttime, fcasttemp, fcastcondition, fcastrain)))
             except (requests.exceptions.RequestException, ValueError):
                 self.current = 'Unable to fetch data'
                 del self.forecasts[:]

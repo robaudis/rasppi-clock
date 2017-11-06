@@ -1,4 +1,4 @@
-from luma.core.serial import spi
+from luma.core.interface.serial import spi
 from luma.core.render import canvas
 from luma.oled.device import sh1106
 from PIL import Image, ImageDraw, ImageFont

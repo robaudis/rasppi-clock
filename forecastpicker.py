@@ -14,7 +14,7 @@ class ForecastPicker:
             if self.current is None or (self.requests > 20 and not self.current.scrolling):
                 self.requests = 0
                 self.forecastnum = self.forecastnum + 1 if self.forecastnum < 2 else 0
-                self.current = TextScroller(self.fetcher.forecasts[self.forecastnum])
+                self.current = self.fetcher.forecasts[self.forecastnum]
             
             return self.current
         return self.default

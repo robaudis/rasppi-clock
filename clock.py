@@ -42,7 +42,7 @@ clockfont = make_font('DSEG7Classic-Regular', 36)
 infofont = make_font('ProggyTiny', 16)
 
 start = datetime.strptime('06:00', '%H:%M').time()
-end = datetime.strptime('22:30', '%H:%M').time()
+end = datetime.strptime('23:30', '%H:%M').time()
 
 sighandler = SigHandler()
 

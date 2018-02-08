@@ -44,8 +44,8 @@ class WeatherFetcher(threading.Thread):
                     fcastcondition = fcast['condition']
                     fcastrain = fcast['pop']
                     self.forecasts.append(TextScroller('{}: {} {}, rain: {}%'.format(fcasttime, fcasttemp, fcastcondition, fcastrain)))
-            except (requests.exceptions.RequestException, ValueError):
-                self.current = 'Unable to fetch data'
+            except (requests.exceptions.RequestException, ValueError) as e:
+                self.current = str(e)
                 del self.forecasts[:]
 
             for i in range(0, self.interval):

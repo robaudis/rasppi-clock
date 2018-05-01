@@ -2,10 +2,11 @@ import requests
 import json
 import time
 import threading
+import logging
 
 from textscroller import TextScroller
 
-
+logging.basicConfig(filename='piclock.log',level=logging.INFO)
 class WeatherFetcher(threading.Thread):
     '''
     Class for fetching weather data every x seconds from Weather Underground
@@ -45,7 +46,7 @@ class WeatherFetcher(threading.Thread):
                     fcastrain = fcast['pop']
                     self.forecasts.append(TextScroller('{}: {} {}, rain: {}%'.format(fcasttime, fcasttemp, fcastcondition, fcastrain)))
             except (requests.exceptions.RequestException, ValueError) as e:
-                self.current = str(e)
+                logging.error(str(e))
                 del self.forecasts[:]
 
             for i in range(0, self.interval):

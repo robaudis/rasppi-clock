@@ -3,7 +3,6 @@ import json
 import time
 import threading
 import logging
-import weathertypes
 
 from datetime import datetime
 from textscroller import TextScroller
@@ -13,15 +12,13 @@ class WeatherFetcher(threading.Thread):
     '''
     Class for fetching weather data every x seconds from Met Office Datapoint
     '''
-    def __init__(self, api_key, location, interval = 900):
+    def __init__(self, provider, interval = 900):
         threading.Thread.__init__(self)
-        self.last_obs_time = ''
+        self.provider = provider
         self.current = 'No weather data'
-        self.forecasts = []
-        self.api_key = api_key
-        self.location = location   
+        self.forecasts = [] 
         self.interval = interval
-        self.running = True if api_key else False        
+        self.running = True if provider else False        
     
     def __enter__(self):
         self.start()
@@ -35,15 +32,7 @@ class WeatherFetcher(threading.Thread):
     def run(self):
         while self.running:
             try:
-                now = datetime.now().strftime("%Y-%m-%dT%HZ")
-                if(now != self.last_obs_time): 
-                    response = requests.get('http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{location}?res=hourly&time={time}&key={apikey}'.format(apikey=self.api_key, location=self.location, time=now))
-               
-                    parsed_json = response.json()
-                    temp_c = parsed_json['SiteRep']['DV']['Location']['Period']['Rep']['T']
-                    weather_string = weathertypes.codelist[parsed_json['SiteRep']['DV']['Location']['Period']['Rep']['W']]
-                    self.current = str(temp_c) + u'\u00b0' + " " + weather_string
-                    self.last_obs_time = now
+                self.current, self.forecasts = self.provider.fetch()
             except (requests.exceptions.RequestException, ValueError) as e:
                 logging.error(str(e))
 

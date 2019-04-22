@@ -12,7 +12,7 @@ from forecastpicker import ForecastPicker
 import time
 import os
 import argparse
-
+from weather.providers.factory import Factory
 
 def is_between(now, start, end):
     if start < end:
@@ -46,7 +46,9 @@ end = datetime.strptime('23:30', '%H:%M').time()
 
 sighandler = SigHandler()
 
-with WeatherFetcher(args.apikey, args.location, 60) as weather:
+provider = Factory().create(args.apikey, args.location)
+
+with WeatherFetcher(provider, 60) as weather:
     forecastpicker = ForecastPicker(weather)
     while not sighandler.kill_now:
         if is_between(datetime.now().time(), start, end):

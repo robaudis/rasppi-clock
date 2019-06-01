@@ -10,7 +10,7 @@ from textscroller import TextScroller
 logging.basicConfig(filename='piclock.log',level=logging.INFO)
 class WeatherFetcher(threading.Thread):
     '''
-    Class for fetching weather data every x seconds from Met Office Datapoint
+    Class for fetching weather data every x seconds from a weather provider
     '''
     def __init__(self, provider, interval = 900):
         threading.Thread.__init__(self)
@@ -32,11 +32,13 @@ class WeatherFetcher(threading.Thread):
     def run(self):
         while self.running:
             try:
-                self.current, self.forecasts = self.provider.fetch()
+                self.current, forecasts = self.provider.fetch()
+                self.forecasts = [TextScroller(forecast) for forecast in forecasts]
+
             except (requests.exceptions.RequestException, ValueError) as e:
                 logging.error(str(e))
 
-            for i in range(0, self.interval):
+            for _ in range(0, self.interval):
                 if not self.running: 
                     break
                 time.sleep(1)

@@ -15,7 +15,7 @@ class WeatherFetcher(threading.Thread):
     def __init__(self, provider, interval = 900):
         threading.Thread.__init__(self)
         self.provider = provider
-        self.current = 'No weather data'
+        self.current = TextScroller('', 'No weather data')
         self.forecasts = [] 
         self.interval = interval
         self.running = True if provider else False        
@@ -32,8 +32,9 @@ class WeatherFetcher(threading.Thread):
     def run(self):
         while self.running:
             try:
-                self.current, forecasts = self.provider.fetch()
-                self.forecasts = [TextScroller(forecast) for forecast in forecasts]
+                current, forecasts = self.provider.fetch()
+                self.current = TextScroller(current.temp, current.summary)
+                self.forecasts = [TextScroller(forecast.time, forecast.forecast) for forecast in forecasts]
 
             except (requests.exceptions.RequestException, ValueError) as e:
                 logging.error(str(e))

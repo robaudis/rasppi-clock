@@ -3,13 +3,14 @@ import json
 from .MetOfficeWeatherTypes import codelist
 
 from datetime import datetime
+from ..providers import Current
 
 class MetOfficeProvider():
     def __init__(self, api_key, location):
         self.api_key = api_key
         self.location = location
         self.last_obs_time = ''
-        self.current = 'No weather data'
+        self.current = Current('', 'No weather data')
 
     def fetch(self):
         now = datetime.now().strftime("%Y-%m-%dT%HZ")
@@ -19,7 +20,7 @@ class MetOfficeProvider():
             parsed_json = response.json()
             temp_c = parsed_json['SiteRep']['DV']['Location']['Period']['Rep']['T']
             weather_string = codelist[parsed_json['SiteRep']['DV']['Location']['Period']['Rep']['W']]
-            self.current = str(temp_c) + u'\u00b0' + " " + weather_string
+            self.current = Current('{:.1f}{}'.format(temp_c, u'\u00b0'), weather_string)
             self.last_obs_time = now
 
         return self.current, []

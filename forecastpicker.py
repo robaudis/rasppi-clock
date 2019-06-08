@@ -5,7 +5,7 @@ class ForecastPicker:
         self.requests = 0
         self.forecastnum = 0
         self.fetcher = weatherfetcher
-        self.default = TextScroller('No forecast data')
+        self.default = TextScroller('', 'No forecast data')
         self.current = None
     
     def forecast(self):

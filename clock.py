@@ -59,8 +59,9 @@ with WeatherFetcher(provider, 300) as weather:
 
             with canvas(device) as draw:
                 format = '%H:%M' if not space else '%H %M'
-                draw.text((2,2), datetime.now().strftime(format), font=clockfont, fill='white')            
-                draw.text((5,40), weather.current, font=infofont, fill='white')  
+                draw.text((2,2), datetime.now().strftime(format), font=clockfont, fill='white')   
+                with weather.current.scroll(overscroll=3) as current:
+                    draw.text((5,40), current, font=infofont, fill='white')  
                 with forecastpicker.forecast().scroll(overscroll=3) as text:              
                     draw.text((5,50), text, font=infofont, fill='white')
         else:

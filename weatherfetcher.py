@@ -7,7 +7,6 @@ import logging
 from datetime import datetime
 from textscroller import TextScroller
 
-logging.basicConfig(filename='piclock.log',level=logging.INFO)
 class WeatherFetcher(threading.Thread):
     '''
     Class for fetching weather data every x seconds from a weather provider
@@ -36,8 +35,8 @@ class WeatherFetcher(threading.Thread):
                 self.current = TextScroller(current.temp, current.summary)
                 self.forecasts = [TextScroller(forecast.time, forecast.forecast) for forecast in forecasts]
 
-            except (requests.exceptions.RequestException, ValueError) as e:
-                logging.error(str(e))
+            except (requests.exceptions.ConnectionError, requests.exceptions.RequestException, ValueError) as e:
+                pass
 
             for _ in range(0, self.interval):
                 if not self.running: 

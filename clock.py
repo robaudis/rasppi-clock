@@ -12,7 +12,10 @@ from forecastpicker import ForecastPicker
 import time
 import os
 import argparse
+import json
 from weather.providers.factory import Factory
+
+from pathlib import Path
 
 def is_between(now, start, end):
     if start < end:
@@ -26,15 +29,21 @@ def make_font(fontname, size):
     scriptpath = os.path.dirname(os.path.abspath(__file__))
     return ImageFont.truetype(os.path.join(scriptpath, 'fonts', '%s.ttf' % fontname), size)
 
-parser = argparse.ArgumentParser(description='OLED clock with weather.')
-parser.add_argument('--apikey', help='Weather Provider API key.', required=True)
-parser.add_argument('--location', help='Location', required=True)
-parser.add_argument('--provider', help='Provider [metoffice|darksky]', required=False)
-args = parser.parse_args()
+#parser = argparse.ArgumentParser(description='OLED clock with weather.')
+#parser.add_argument('--apikey', help='Weather Provider API key.', required=True)
+#parser.add_argument('--location', help='Location', required=True)
+#parser.add_argument('--provider', help='Provider [metoffice|darksky|openweathermap]', required=False)
+#args = parser.parse_args()
+
+p = Path(__file__).with_name('config.json')
+#configfile = p.absolute()
+
+with p.open('r') as f:
+    args = json.load(f)
 
 serial = spi(device=0, port=0)
 device = sh1106(serial)
-device.contrast(64)
+device.contrast(128)
 
 space = False
 screen_on = False
@@ -47,7 +56,7 @@ end = datetime.strptime('23:30', '%H:%M').time()
 
 sighandler = SigHandler()
 
-provider = Factory().create(args.provider, args.apikey, args.location)
+provider = Factory().create(args["provider"], args["apikey"], args["location"])
 
 with WeatherFetcher(provider, 300) as weather:
     forecastpicker = ForecastPicker(weather)

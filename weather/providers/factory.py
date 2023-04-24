@@ -1,5 +1,6 @@
 from .metoffice import MetOfficeProvider
 from .darksky import DarkSkyProvider
+from .openweathermap import OpenWeatherMapProvider
 from .null import NullProvider
 
 class Factory():
@@ -11,5 +12,7 @@ class Factory():
             return DarkSkyProvider(api_key, location)
         elif provider == 'metoffice':
             return MetOfficeProvider(api_key,location)
+        elif provider == 'openweathermap':
+            return OpenWeatherMapProvider(api_key,location)
         else:
             return NullProvider()
